@@ -1,4 +1,5 @@
 const express = require("express");
+const res = require("express/lib/response");
 const App = express();
 const PORT = 3001;
 const SERVER_URI = `http://localhost:${PORT}`;
@@ -37,11 +38,22 @@ App.get("/api", (request, response) => {
 App.get("/api/persons", (request, response) => {
     response.json(persons);
 });
+App.get("/api/persons/:id", (request, response) => {
+    const id = Number(request.params.id);
+    const person = persons.find(person => person.id === id);
+
+    if (person) {
+       return response.json(person);
+    }
+    
+    response.statusMessage = "That person is not in the phonebook";
+    response.status(404).end();
+});
 App.get("/info", (request, response) => {
     response.send(`
         <p>Phonebook has info for ${persons.length} people</p>
         <p>${new Date()}</p>
     `)
-})
+});
 
 console.log(`App starting at: http://localhost:${PORT}`);
