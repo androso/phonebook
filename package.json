@@ -1,0 +1,27 @@
+{
+  "name": "phonebook",
+  "version": "1.0.0",
+  "description": "Using fullstack",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/androso/phonebook.git"
+  },
+  "author": "androso",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/androso/phonebook/issues"
+  },
+  "homepage": "https://github.com/androso/phonebook#readme",
+  "dependencies": {
+    "express": "^4.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
