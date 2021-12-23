@@ -14,12 +14,12 @@ const requestLogger = (request, response, next) => {
 };
 
 morgan.token('content', (request, response) => {
-    return `${request.body}`;
+    return `${JSON.stringify(request.body)}`;
 });
 
 App.use(express.json());
 //TODO We gotta change the tiny for Custom Arguments
-App.use(morgan('tiny'));
+App.use(morgan(':method :url :status :res[content-length] - :response-time ms :content'));
 
 
 let persons = [
