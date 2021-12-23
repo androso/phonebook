@@ -4,26 +4,30 @@ const App = express();
 const PORT = 3001;
 const SERVER_URI = `http://localhost:${PORT}`;
 
+const crypto = require('crypto');
+
+
+App.use(express.json());
 let persons = [
     { 
-      "id": 1,
+      "id": crypto.randomUUID(),
       "name": "Arto Hellas", 
-      "number": "040-123456"
+      "phoneNumber": "040-123456"
     },
     { 
-      "id": 2,
+      "id": crypto.randomUUID(),
       "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
+      "phoneNumber": "39-44-5323523"
     },
     { 
-      "id": 3,
+      "id": crypto.randomUUID(),
       "name": "Dan Abramov", 
-      "number": "12-43-234345"
+      "phoneNumber": "12-43-234345"
     },
     { 
-      "id": 4,
+      "id": crypto.randomUUID(),
       "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
+      "phoneNumber": "39-23-6423122"
     }
 ]
 
@@ -39,7 +43,9 @@ App.get("/api/persons", (request, response) => {
     response.json(persons);
 });
 App.get("/api/persons/:id", (request, response) => {
-    const id = Number(request.params.id);
+    
+    const id = request.params.id;
+    
     const person = persons.find(person => person.id === id);
 
     if (person) {
@@ -56,4 +62,40 @@ App.get("/info", (request, response) => {
     `)
 });
 
+App.delete("/api/persons/:id", (request, response) => {
+    const id = Number(request.params.id);
+    persons = persons.filter(person => person.id !== id);
+    response.status(204).end();
+})
+
+App.post('/api/persons', (request, response) => {
+    const person = request.body;
+    if (!person) {
+        return response.status(400).json({"error": "data is missing"});
+    } else if (!person.name || !person.phoneNumber) {
+        return response.status(400).json({"error": "data is not complete"});
+    }
+    const dataAlreadyExists = alreadyExists(person, persons);
+
+    if (dataAlreadyExists === "name" || dataAlreadyExists === "phoneNumber") {
+        return response.status(400).json({"error": `${dataAlreadyExists} is already in the phonebook`});
+    }
+
+    person.id = crypto.randomUUID();
+    persons = persons.concat(person); 
+})
+
 console.log(`App starting at: http://localhost:${PORT}`);
+
+function alreadyExists(newPerson, persons) {
+	for (let person of persons) {
+		if (
+			person.name.toLowerCase() === newPerson.name.toLowerCase() ||
+			person.phoneNumber === newPerson.phoneNumber
+		) {
+			return `${
+				person.phoneNumber === newPerson.phoneNumber ? "phoneNumber" : "name"
+			}`;
+		}
+	}
+}
