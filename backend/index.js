@@ -1,7 +1,7 @@
 const express = require("express");
 const App = express();
 const PORT = process.env.PORT || 3001;
-const SERVER_URI = `http://localhost:${PORT}`;
+const SERVER_URI = `https://whispering-escarpment-68139.herokuapp.com`;
 const morgan = require('morgan');
 const crypto = require("crypto");
 const requestLogger = (request, response, next) => {
@@ -16,9 +16,9 @@ const cors = require('cors');
 morgan.token('content', (request, response) => {
     return `${JSON.stringify(request.body)}`;
 });
+App.use(express.static('build'))
 App.use(cors()); 
 App.use(express.json());
-//TODO We gotta change the tiny for Custom Arguments
 App.use(morgan(':method :url :status :res[content-length] - :response-time ms :content'));
 
 
@@ -51,9 +51,9 @@ let persons = [
 ];
 
 App.listen(PORT);
-App.get("/", (request, response) => {
-	response.redirect(`${SERVER_URI}/api`);
-});
+// App.get("/", (request, response) => {
+// 	response.redirect(`${SERVER_URI}/api`);
+// });
 App.get("/api", (request, response) => {
 	response.send("<h1>Welcome to my API</h1>");
 });
