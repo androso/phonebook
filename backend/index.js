@@ -1,7 +1,6 @@
 const express = require("express");
-const res = require("express/lib/response");
 const App = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 const SERVER_URI = `http://localhost:${PORT}`;
 const morgan = require('morgan');
 const crypto = require("crypto");
@@ -12,11 +11,12 @@ const requestLogger = (request, response, next) => {
 	console.log("---");
 	next();
 };
+const cors = require('cors'); 
 
 morgan.token('content', (request, response) => {
     return `${JSON.stringify(request.body)}`;
 });
-
+App.use(cors()); 
 App.use(express.json());
 //TODO We gotta change the tiny for Custom Arguments
 App.use(morgan(':method :url :status :res[content-length] - :response-time ms :content'));
