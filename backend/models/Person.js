@@ -1,10 +1,6 @@
 const mongoose = require("mongoose");
 const DB_URI = process.env.DBATREIDES_URI;
-
-//We connect to the database
-//We create a Schema w the values & type of values to be stored in a Document
-//We then create a model
-//We export that model
+const uniqueValidator = require("mongoose-unique-validator");
 
 mongoose
 	.connect(DB_URI)
@@ -15,17 +11,17 @@ mongoose
 	});
 
 const personSchema = new mongoose.Schema({
-	name: String,
-	phoneNumber: String,
+	name: { type: String, required: true, unique: true, minLength: 3},
+	phoneNumber: { type: String, required: true, unique: true, minLength: 8},
 });
 
-personSchema.set('toJSON', {
-    transform: (document, returnedObject) => {
-        returnedObject.id = returnedObject._id.toString(),
-        delete returnedObject._id;
-        delete returnedObject.__v;
-    }
+personSchema.plugin(uniqueValidator);
+personSchema.set("toJSON", {
+	transform: (document, returnedObject) => {
+		(returnedObject.id = returnedObject._id.toString()),
+			delete returnedObject._id;
+		delete returnedObject.__v;
+	},
 });
 
 module.exports = mongoose.model("Person", personSchema);
-

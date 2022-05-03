@@ -27,7 +27,18 @@
 .App-link {
   color: #61dafb;
 }
-
+.error {
+  border-radius: 20px;
+  padding: 20px;
+  border: 3px red solid;
+  background-color: #ebe7e7;
+}
+.success {
+  border-radius: 20px;
+  padding: 20px;
+  border: 3px green solid;
+  background-color: #ebe7e7;
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);

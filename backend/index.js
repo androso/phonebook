@@ -7,16 +7,8 @@ const App = express();
 const PORT = process.env.PORT;
 const Person = require("./models/Person");
 const morgan = require("morgan");
-const crypto = require("crypto");
-const requestLogger = (request, response, next) => {
-	console.log("Method:", request.method);
-	console.log("Path:  ", request.path);
-	console.log("Body:  ", request.body);
-	console.log("---");
-	next();
-};
+
 const cors = require("cors");
-const mongoose = require("mongoose");
 
 morgan.token("content", (request, response) => {
 	return `${JSON.stringify(request.body)}`;
@@ -37,9 +29,11 @@ App.get("/api", (request, response) => {
 App.get("/api/persons", (request, response) => {
 	Person.find({}).then((results) => response.json(results));
 });
-App.get("/api/persons/:id", (request, response) => {
+App.get("/api/persons/:id", (request, response, next) => {
 	const id = request.params.id;
-	Person.findById(id).then((person) => response.json(person));
+	Person.findById(id)
+		.then((person) => response.json(person))
+		.catch((error) => next(error));
 
 	// response.statusMessage = "That person is not in the phonebook";
 	// response.status(404).end();
@@ -58,7 +52,7 @@ App.delete("/api/persons/:id", async (request, response) => {
 	response.status(204).end();
 });
 
-App.post("/api/persons", async (request, response) => {
+App.post("/api/persons", async (request, response, next) => {
 	const person = request.body;
 	if (!person) {
 		return response.status(400).json({ error: "data is missing" });
@@ -67,40 +61,35 @@ App.post("/api/persons", async (request, response) => {
 	}
 
 	//TODO Add some form of validation to prevent duplicates
-	// const dataAlreadyExists = alreadyExists(person, persons);
-
-	// if (dataAlreadyExists === "name" || dataAlreadyExists === "phoneNumber") {
-	// 	return response
-	// 		.status(400)
-	// 		.json({ error: `${dataAlreadyExists} is already in the phonebook` });
-	// }
-
 	const newPerson = new Person({
 		name: person.name,
 		phoneNumber: person.phoneNumber,
 	});
-	await newPerson.save();
-
-	response.status(200).location(`/api/persons/${newPerson.id}`).end();
+	await newPerson
+		.save()
+		.then((savedPerson) =>
+			response.status(200).location(`/api/persons/${newPerson.id}`).end()
+		)
+		.catch((error) => next(error));
 });
 
-App.put("/api/persons/:id", async (request, response) => {
-	//This only updates the phonenumber, do we need to update names? i don't think so
-	//TODO It only shows big error when the id is not a valid number for Mongoose, if it's equivalent, then we can handle the error ok.
-	// Maybe chechking if the id can convert to ObjectId, if not return false, else continue?
+App.put("/api/persons/:id", async (request, response, next) => {
 	const id = request.params.id;
 	const newPhoneNumber = request.body.phoneNumber;
 	const updatingPerson = await Person.findById(id);
 
 	if (!updatingPerson) {
-		console.log('Find a way to handle Errors like this one');
 		response.statusMessage = "That person is not in the phonebook";
 		response.status(404).end();
 	} else {
 		updatingPerson.phoneNumber = newPhoneNumber;
-		await updatingPerson.save();
-		response.status(204);
-		response.end();
+		updatingPerson
+			.save()
+			.then((updatedPerson) => response.status(204).end())
+			.catch((error) => {
+				console.log("passing to next");
+				next(error);
+			});
 	}
 });
 console.log(`App starting at: http://localhost:${PORT}`);
@@ -110,15 +99,13 @@ const unknownEndpoint = (request, response) => {
 };
 App.use(unknownEndpoint);
 
-function alreadyExists(newPerson, persons) {
-	for (let person of persons) {
-		if (
-			person.name.toLowerCase() === newPerson.name.toLowerCase() ||
-			person.phoneNumber === newPerson.phoneNumber
-		) {
-			return `${
-				person.phoneNumber === newPerson.phoneNumber ? "phoneNumber" : "name"
-			}`;
-		}
+const myErrorHandler = (error, request, response, next) => {
+	if (error.name === "CastError") {
+		return response.status(400).send({ error: "Malformatted ID" });
+	} else if (error.name === "ValidationError") {
+		console.log("inside the myErrorHandler");
+		return response.status(403).send({ error: error.message });
 	}
-}
+	next(error);
+};
+App.use(myErrorHandler);
